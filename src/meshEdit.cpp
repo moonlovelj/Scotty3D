@@ -107,7 +107,94 @@ namespace CMU462 {
     // TODO: (meshEdit)
     // This method should collapse the given edge and return an iterator to
     // the new vertex created by the collapse.
-    return VertexIter();
+	  if (e->isBoundary())
+		  return VertexIter();
+
+	  if (e->halfedge()->face()->isBoundary() || e->halfedge()->twin()->face()->isBoundary())
+		  return VertexIter();
+
+	  // collect elements
+	  HalfedgeIter h0 = e->halfedge();
+	  HalfedgeIter h1 = h0->next();
+	  HalfedgeIter h2 = h1->next();
+	  HalfedgeIter h3 = h0->twin();
+	  HalfedgeIter h4 = h3->next();
+	  HalfedgeIter h5 = h4->next();
+	  HalfedgeIter h6 = h5->twin();
+	  HalfedgeIter h7 = h4->twin();
+	  HalfedgeIter h8 = h2->twin();
+	  HalfedgeIter h9 = h1->twin();
+	  HalfedgeIter h10 = h9->next();
+	  HalfedgeIter h11 = h10->twin();
+	  HalfedgeIter h12 = h11->next();
+	  HalfedgeIter h13 = h12->twin();
+	  HalfedgeIter h14 = h13->next();
+	  HalfedgeIter h15 = h14->twin();
+	  HalfedgeIter h16 = h7->next();
+	  HalfedgeIter h17 = h16->twin();
+	  HalfedgeIter h18 = h17->next();
+	  HalfedgeIter h19 = h18->twin();
+	  HalfedgeIter h20 = h19->next();
+	  HalfedgeIter h21 = h20->twin();
+
+	  VertexIter v0 = h5->vertex();
+	  VertexIter v1 = h2->vertex();
+	  VertexIter v2 = h3->vertex();
+	  VertexIter v3 = h0->vertex();
+
+	  EdgeIter e1 = h5->edge();
+	  EdgeIter e2 = h1->edge();
+	  EdgeIter e3 = h2->edge();
+	  EdgeIter e4 = h4->edge();
+
+	  FaceIter f0 = h0->face();
+	  FaceIter f1 = h3->face();
+
+	  // reassign elements
+	  h6->setNeighbors(h6->next(), h7, v2, e1, h6->face());
+	  h7->setNeighbors(h7->next(), h6, v0, e1, h7->face());
+	  h8->setNeighbors(h8->next(), h9, v2, e2, h8->face());
+	  h9->setNeighbors(h9->next(), h8, v1, e2, h9->face());
+	  h10->setNeighbors(h10->next(), h11, v2, h10->edge(), h10->face());
+	  h11->setNeighbors(h11->next(), h10, h11->vertex(), h11->edge(), h11->face());
+	  h12->setNeighbors(h12->next(), h13, v2, h12->edge(), h12->face());
+	  h13->setNeighbors(h13->next(), h12, h13->vertex(), h13->edge(), h13->face());
+	  h14->setNeighbors(h14->next(), h15, v2, h14->edge(), h14->face());
+	  h15->setNeighbors(h6, h14, h15->vertex(), h15->edge(), h15->face());
+	  h16->setNeighbors(h16->next(), h17, v2, h16->edge(), h16->face());
+	  h17->setNeighbors(h17->next(), h16, h17->vertex(), h17->edge(), h17->face());
+	  h18->setNeighbors(h18->next(), h19, v2, h18->edge(), h18->face());
+	  h19->setNeighbors(h19->next(), h18, h19->vertex(), h19->edge(), h19->face());
+	  h20->setNeighbors(h20->next(), h21, v2, h20->edge(), h20->face());
+	  h21->setNeighbors(h8, h20, h21->vertex(), h21->edge(), h21->face());
+
+	  v0->halfedge() = h7;
+	  v1->halfedge() = h9;
+	  v2->halfedge() = h6;
+	  v2->position = 0.5f * (v2->position + v3->position);
+
+	  e1->halfedge() = h6;
+	  e2->halfedge() = h8;
+
+
+	  // delete unused elements
+	  deleteHalfedge(h0);
+	  deleteHalfedge(h1);
+	  deleteHalfedge(h2);
+	  deleteHalfedge(h3);
+	  deleteHalfedge(h4);
+	  deleteHalfedge(h5);
+
+	  deleteVertex(v3);
+
+	  deleteEdge(e);
+	  deleteEdge(e3);
+	  deleteEdge(e4);
+
+	  deleteFace(f0);
+	  deleteFace(f1);
+
+    return v2;
   }
 
   VertexIter HalfedgeMesh::collapseFace(FaceIter f) {
