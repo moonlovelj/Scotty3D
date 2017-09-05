@@ -358,13 +358,36 @@ namespace CMU462 {
   {
     // TODO For each vertex, assign Vertex::newPosition to
     // its original position, Vertex::position.
+	  for (VertexIter it = vertices.begin(); it != vertices.end(); it++)
+	  {
+		  it->newPosition = it->position;
+	  }
 
     // TODO For each edge, assign the midpoint of the two original
     // positions to Edge::newPosition.
+	  for (EdgeIter it = edges.begin(); it != edges.end(); it++)
+	  {
+		  it->newPosition = 0.5f * (it->halfedge()->vertex()->position + it->halfedge()->twin()->vertex()->position);
+	  }
 
     // TODO For each face, assign the centroid (i.e., arithmetic mean)
     // of the original vertex positions to Face::newPosition.  Note
     // that in general, NOT all faces will be triangles!
+	  for (FaceIter it = faces.begin(); it != faces.end(); it++)
+	  {
+		  int n = 0;
+		  HalfedgeIter hIt = it->halfedge();
+		  Vector3D allPosition;
+		  do 
+		  {
+			  VertexIter vIt = hIt->vertex();
+			  allPosition += vIt->position;
+			  hIt = hIt->next();
+			  ++n;
+		  } while (hIt != it->halfedge());
+
+		  it->newPosition = allPosition / n;
+	  }
   }
 
   /**
@@ -400,12 +423,25 @@ namespace CMU462 {
   {
     // TODO Start a counter at zero; if you like, you can use the
     // "Index" type (defined in halfedgeMesh.h)
-
+	  Index index = 0;
     // TODO Iterate over vertices, assigning values to Vertex::index
-
+	for (VertexIter it = vertices.begin(); it != vertices.end(); it++)
+	{
+		it->index = index;
+		++index;
+	}
     // TODO Iterate over edges, assigning values to Edge::index
-
+	for (EdgeIter it = edges.begin(); it != edges.end(); it++)
+	{
+		it->index = index;
+		++index;
+	}
     // TODO Iterate over faces, assigning values to Face::index
+	for (FaceIter it = faces.begin(); it != faces.end(); it++)
+	{
+		it->index = index;
+		++index;
+	}
   }
 
   /**
@@ -421,12 +457,22 @@ namespace CMU462 {
 
     // TODO Iterate over vertices, assigning Vertex::newPosition to the appropriate
     // location in the new vertex list.
-
+	  for (VertexIter it = vertices.begin(); it != vertices.end(); it++)
+	  {
+		  subDVertices.push_back(it->newPosition);
+	  }
     // TODO Iterate over edges, assigning Edge::newPosition to the appropriate
     // location in the new vertex list.
-
+	  for (EdgeIter it = edges.begin(); it != edges.end(); it++)
+	  {
+		  subDVertices.push_back(it->newPosition);
+	  }
     // TODO Iterate over faces, assigning Face::newPosition to the appropriate
     // location in the new vertex list.
+	  for (FaceIter it = faces.begin(); it != faces.end(); it++)
+	  {
+		  subDVertices.push_back(it->newPosition);
+	  }
   }
 
   /**
@@ -460,6 +506,20 @@ namespace CMU462 {
     // TODO loop around face
     // TODO build lists of four indices for each sub-quad
     // TODO append each list of four indices to face list
+	  for (FaceIter fIt = faces.begin(); fIt != faces.end(); fIt++)
+	  {
+		  HalfedgeIter hIt = fIt->halfedge();
+		  do 
+		  {
+			  vector<Index> temp;
+			  temp.push_back(hIt->edge()->index);
+			  temp.push_back(hIt->next()->vertex()->index);
+			  temp.push_back(hIt->next()->edge()->index);
+			  temp.push_back(fIt->index);
+			  subDFaces.push_back(temp);
+			  hIt = hIt->next();
+		  } while (hIt != fIt->halfedge());
+	  }
   }
 
   void HalfedgeMesh::_bevel_fc_reposition_with_dist( vector<Vector3D>& orig, // list of vertex positions of the original face (before bevel)
