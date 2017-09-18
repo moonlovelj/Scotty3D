@@ -12,10 +12,10 @@ namespace CMU462 {
     // newly inserted vertex. The halfedge of this vertex should point along
     // the edge that was split, rather than the new edges.
 	  if (e0->isBoundary())
-		  return VertexIter();
+		  return e0->halfedge()->vertex();
 
 	  if (e0->halfedge()->face()->isBoundary() || e0->halfedge()->twin()->face()->isBoundary())
-		  return VertexIter();
+		  return e0->halfedge()->vertex();
 
 	  // collect elements
 	  HalfedgeIter h0 = e0->halfedge();
@@ -108,10 +108,10 @@ namespace CMU462 {
     // This method should collapse the given edge and return an iterator to
     // the new vertex created by the collapse.
 	  if (e->isBoundary())
-		  return VertexIter();
+		  return e->halfedge()->vertex();
 
 	  if (e->halfedge()->face()->isBoundary() || e->halfedge()->twin()->face()->isBoundary())
-		  return VertexIter();
+		  return e->halfedge()->vertex();
 
 	  // collect elements
 	  HalfedgeIter h0 = e->halfedge();
@@ -202,7 +202,8 @@ namespace CMU462 {
     // TODO: (meshEdit)
     // This method should collapse the given face and return an iterator to
     // the new vertex created by the collapse.
-    return VertexIter();
+	
+	  return VertexIter();
   }
 
   FaceIter HalfedgeMesh::eraseVertex(VertexIter v) {
@@ -232,6 +233,7 @@ namespace CMU462 {
 	  if (e0->halfedge()->face()->isBoundary() || e0->halfedge()->twin()->face()->isBoundary())
 		  return e0;
 
+	  // collect elements
 	  HalfedgeIter h0 = e0->halfedge();
 	  HalfedgeIter h1 = h0->next();
 	  HalfedgeIter h2 = h1->next();
@@ -242,21 +244,18 @@ namespace CMU462 {
 	  HalfedgeIter h7 = h2->twin();
 	  HalfedgeIter h8 = h4->twin();
 	  HalfedgeIter h9 = h5->twin();
-
 	  VertexIter v0 = h0->vertex();
 	  VertexIter v1 = h3->vertex();
 	  VertexIter v2 = h2->vertex();
 	  VertexIter v3 = h5->vertex();
-
 	  EdgeIter e1 = h1->edge();
 	  EdgeIter e2 = h2->edge();
 	  EdgeIter e3 = h4->edge();
 	  EdgeIter e4 = h5->edge();
-
 	  FaceIter f0 = h0->face();
 	  FaceIter f1 = h3->face();
 
-
+	  // reassign elements
 	  h0->setNeighbors(h1, h3, v3, e0, f0);
 	  h1->setNeighbors(h2, h7, v2, e2, f0);
 	  h2->setNeighbors(h0, h8, v0, e3, f0);
@@ -267,18 +266,15 @@ namespace CMU462 {
 	  h7->setNeighbors(h7->next(), h1, v0, e2, h7->face());
 	  h8->setNeighbors(h8->next(), h2, v3, e3, h8->face());
 	  h9->setNeighbors(h9->next(), h4, v1, e4, h9->face());
-
 	  v0->halfedge() = h2;
 	  v1->halfedge() = h5;
 	  v2->halfedge() = h3;
 	  v3->halfedge() = h0;
-
 	  e0->halfedge() = h0;
 	  e1->halfedge() = h5;
 	  e2->halfedge() = h1;
 	  e3->halfedge() = h2;
 	  e4->halfedge() = h4;
-
 	  f0->halfedge() = h0;
 	  f1->halfedge() = h3;
 
