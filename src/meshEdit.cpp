@@ -403,10 +403,45 @@ namespace CMU462 {
     // rules.  (These rules are outlined in the Developer Manual.)
 
     // TODO face
+	  for (FaceIter it = faces.begin(); it != faces.end(); it++)
+	  {
+		  int n = 0;
+		  HalfedgeIter hIt = it->halfedge();
+		  Vector3D allPosition;
+		  do
+		  {
+			  VertexIter vIt = hIt->vertex();
+			  allPosition += vIt->position;
+			  hIt = hIt->next();
+			  ++n;
+		  } while (hIt != it->halfedge());
 
+		  it->newPosition = allPosition / n;
+	  }
     // TODO edges
+	  for (EdgeIter it = edges.begin(); it != edges.end(); it++)
+	  {
+		  it->newPosition = (it->halfedge()->vertex()->position + it->halfedge()->twin()->vertex()->position
+								+ it->halfedge()->face()->newPosition + it->halfedge()->twin()->face()->newPosition) * 0.25;
+	  }
 
     // TODO vertices
+	  for (VertexIter it = vertices.begin(); it != vertices.end(); it++)
+	  {
+		  Size n = it->degree();
+		  Vector3D Q, R, S = it->position;
+		  HalfedgeIter h = it->halfedge();
+		  do 
+		  {
+			  Q += h->face()->newPosition;
+			  R += h->edge()->newPosition;
+			  h = h->twin()->next();
+		  } while (h != it->halfedge());
+		  Q /= n;
+		  R /= n;
+		  it->newPosition = (Q + 2 * R + (n - 3)*S) / n;
+	  }
+
   }
 
   /**
