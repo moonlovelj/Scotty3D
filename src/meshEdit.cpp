@@ -539,6 +539,34 @@ namespace CMU462 {
     //    Vector3D pi = orig[i]; // get the original vertex position correponding to vertex i
     // }
     //
+
+	  int N = hs.size();
+	  for (int i = 0; i < hs.size(); i++)
+	  {
+		  //Vector3D pi = orig[i]; // get the original vertex position correponding to vertex i
+		  int a = (i + N - 1) % N;
+		  int b = i;
+		  int c = (i + 1) % N;
+		  // Get the actual 3D vertex coordinates at these vertices
+		  Vector3D pa = orig[a];
+		  Vector3D pb = orig[b];
+		  Vector3D pc = orig[c];
+		  Vector3D v1 = pa - pb;
+		  Vector3D v2 = pc - pb;
+		  Vector3D v = v1 + v2;
+		  v.normalize();
+		  hs[i]->vertex()->position = pb + v * inset;
+	  }
+	  
+	  if (N == 0)
+		  return;
+
+	  Vector3D fNormal = hs[0]->twin()->next()->twin()->face()->normal();
+	  for (int i = 0; i < hs.size(); i++)
+	  {
+		  hs[i]->vertex()->position = hs[i]->vertex()->position +shift * fNormal;
+	  }
+	  
   }
 
   void HalfedgeMesh::_bevel_vtx_reposition_with_dist( Vector3D orig, // original vertex position, before the bevel
@@ -612,8 +640,68 @@ namespace CMU462 {
     // updating the *connectivity* of the mesh only---it does not need to update the vertex positions.  These
     // positions will be updated in HalfedgeMesh::_bevel_vtx_reposition_with_dist (which you also have to
     // implement!)
+	  HalfedgeIter h0 = f->halfedge();
+	  HalfedgeIter h1 = h0->next();
+	  HalfedgeIter h2 = h1->next();
+	  VertexIter v0 = h0->vertex();
+	  VertexIter v1 = h1->vertex();
+	  VertexIter v2 = h2->vertex();
 
-    return facesBegin();
+	  VertexIter v3 = newVertex();
+	  VertexIter v4 = newVertex();
+	  VertexIter v5 = newVertex();
+	  EdgeIter e0 = newEdge();
+	  EdgeIter e1 = newEdge();
+	  EdgeIter e2 = newEdge();
+	  EdgeIter e3 = newEdge();
+	  EdgeIter e4 = newEdge();
+	  EdgeIter e5 = newEdge();
+	  FaceIter f0 = newFace();
+	  FaceIter f1 = newFace();
+	  FaceIter f2 = newFace();
+	  HalfedgeIter h3 = newHalfedge();
+	  HalfedgeIter h4 = newHalfedge();
+	  HalfedgeIter h5 = newHalfedge();
+	  HalfedgeIter h6 = newHalfedge();
+	  HalfedgeIter h7 = newHalfedge();
+	  HalfedgeIter h8 = newHalfedge();
+	  HalfedgeIter h9 = newHalfedge();
+	  HalfedgeIter h10 = newHalfedge();
+	  HalfedgeIter h11 = newHalfedge();
+	  HalfedgeIter h12 = newHalfedge();
+	  HalfedgeIter h13 = newHalfedge();
+	  HalfedgeIter h14 = newHalfedge();
+	  
+	  v3->halfedge() = h5;
+	  v4->halfedge() = h11;
+	  v5->halfedge() = h8;
+	  e0->halfedge() = h3;
+	  e1->halfedge() = h9;
+	  e2->halfedge() = h6;
+	  e3->halfedge() = h14;
+	  e4->halfedge() = h12;
+	  e5->halfedge() = h13;
+	  f->halfedge() = h12;
+	  f0->halfedge() = h0;
+	  f1->halfedge() = h1;
+	  f2->halfedge() = h2;
+	  h0->setNeighbors(h9, h0->twin(), v0, h0->edge(), f0);
+	  h1->setNeighbors(h6, h1->twin(), v1, h1->edge(), f1);
+	  h2->setNeighbors(h3, h2->twin(), v2, h2->edge(), f2);
+	  h3->setNeighbors(h4, h11, v0, e0, f2);
+	  h4->setNeighbors(h5, h14, v4, e3, f2);
+	  h5->setNeighbors(h2, h6, v3, e2, f2);
+	  h6->setNeighbors(h7, h5, v2, e2, f1);
+	  h7->setNeighbors(h8, h13, v3, e5, f1);
+	  h8->setNeighbors(h1, h9, v5, e1, f1);
+	  h9->setNeighbors(h10, h8, v1, e1, f0);
+	  h10->setNeighbors(h11, h12, v5, e4, f0);
+	  h11->setNeighbors(h0, h3, v4, e0, f0);
+	  h12->setNeighbors(h13, h10, v4, e4, f);
+	  h13->setNeighbors(h14, h7, v5, e5, f);
+	  h14->setNeighbors(h12, h4, v3, e3, f);
+
+	  return f;
   }
 
   void HalfedgeMesh::splitPolygons(vector<FaceIter>& fcs) {
