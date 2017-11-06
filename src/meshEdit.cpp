@@ -710,6 +710,44 @@ namespace CMU462 {
 
   void HalfedgeMesh::splitPolygon(FaceIter f) {
     // TODO triangulation
+	  if (f->degree() <= 3)
+		  return;
+
+	  HalfedgeIter hBegin = f->halfedge();
+	  HalfedgeIter hLast = hBegin;
+	  HalfedgeIter h = hBegin->next();
+	  FaceIter curF = f;
+	  FaceIter nextF = newFace();
+	  bool bContinue = true;
+	  do 
+	  {
+		  EdgeIter e = newEdge();
+		  HalfedgeIter h1 = newHalfedge();
+		  HalfedgeIter h2 = newHalfedge();
+		  e->halfedge() = h1;
+		  curF->halfedge() = hLast;
+		  h1->setNeighbors(hLast, h2, h->next()->vertex(), e, curF);
+		  h2->setNeighbors(h->next(), h1, hBegin->vertex(), e, nextF);
+		  hLast->face() = curF;
+		  h->face() = curF;
+		  hLast = h2;
+		  curF = nextF;
+		  HalfedgeIter hTemp = h;
+		  h = h->next();
+		  hTemp->next() = h1;
+		  if (h->next()->next() != hBegin)
+			  nextF = newFace();
+		  else
+		  {
+			  nextF->halfedge() = h2;
+			  h->face() = nextF;
+			  h->next()->face() = nextF;
+			  h->next()->next() = h2;
+			  bContinue = false;
+		  }
+
+	  } while (bContinue);
+
   }
 
   EdgeRecord::EdgeRecord(EdgeIter& _edge) : edge(_edge) {
