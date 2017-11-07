@@ -551,9 +551,15 @@ namespace CMU462 {
 		  return;
 
 	  Vector3D fNormal = hs[0]->twin()->next()->twin()->face()->normal();
+	  Vector3D fNormal1 = hs[1]->twin()->next()->twin()->face()->normal();
 	  for (int i = 0; i < hs.size(); i++)
 	  {
 		  hs[i]->vertex()->position = hs[i]->vertex()->position +shift * fNormal;
+	  }
+
+	  for (int i = 0; i < orig.size(); i++)
+	  {
+		  orig[i] = hs[i]->vertex()->position;
 	  }
 	  
   }
