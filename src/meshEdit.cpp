@@ -838,7 +838,77 @@ namespace CMU462 {
     // Finally, flip any new edge that connects an old and new vertex.
 
     // Copy the updated vertex positions to the subdivided mesh.
+	  for (VertexIter it = mesh.verticesBegin();it != mesh.verticesEnd(); ++it)
+	  {
+		  it->isNew = false;
+		  HalfedgeIter h = it->halfedge();
+		  Size n = it->degree();
+		  double u = 0;
+		  if (n == 3) 
+			  u = 3.0 / 16;
+		  else 
+			  u = 3.0 / (8.0*n);
 
+		  Vector3D newPosition;
+		  do 
+		  {
+			  newPosition += h->next()->vertex()->position;
+			  h = h->twin()->next();
+		  } while (h != it->halfedge());
+
+		  it->newPosition = (1.0 - n * u) * it->position + u * newPosition;
+	  }
+
+	  // iterate over all edges in the mesh
+	  int n = mesh.nEdges();
+	  EdgeIter e = mesh.edgesBegin();
+	  for (int i = 0; i < n; i++) {
+
+		  // get the next edge NOW!
+		  EdgeIter nextEdge = e;
+		  nextEdge++;
+
+		  // Compute new positions associated with the vertices that will be inserted at edge midpoints,
+		  // and store them in Edge::newPosition.
+		  HalfedgeIter eH = e->halfedge();
+		  Vector3D newVertexPosition = (eH->vertex()->position + eH->twin()->vertex()->position) * 3.0 / 8 +
+			  (eH->next()->next()->vertex()->position + eH->twin()->next()->next()->vertex()->position) * 1.0 / 8;
+
+
+		  e->isNew = false;
+
+		 VertexIter insertedVertex = mesh.splitEdge(e);
+		 insertedVertex->isNew = true;
+		 insertedVertex->position = newVertexPosition;
+		  e = nextEdge;
+	  }
+
+	  int newN = mesh.nEdges();
+	  for (int i = n; i < newN; i++)
+	  {
+		  e->isNew = true;
+		  e++;
+	  }
+
+	  // Flip any new edge that connects an old and new vertex.
+	  for (EdgeIter eIt = mesh.edgesBegin(); eIt != mesh.edgesEnd(); eIt++)
+	  {
+		  if (eIt->isNew)
+		  {
+			  if (eIt->halfedge()->vertex()->isNew && eIt->halfedge()->twin()->vertex()->isNew)
+			  {
+				  mesh.flipEdge(eIt);
+			  }
+		  }
+	  }
+
+	  for (VertexIter it = mesh.verticesBegin(); it != mesh.verticesEnd(); it++)
+	  {
+		  if (it->isNew == false)
+		  {
+			  it->position = it->newPosition;
+		  }
+	  }
   }
 
   void MeshResampler::downsample(HalfedgeMesh& mesh)
