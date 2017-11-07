@@ -69,6 +69,8 @@ namespace CMU462 {
 	  h10->setNeighbors(h9, h11, v3, e3, f2);
 	  h11->setNeighbors(h5, h10, v4, e3, f3);
 	  v4->position = 0.5 * (v0->position + v2->position);
+	  e0->isNew = e2->isNew = false;
+	  e1->isNew = e3->isNew = true;
 
     return v4;
   }
@@ -201,53 +203,34 @@ namespace CMU462 {
 	  if (e0->isBoundary())
 		  return e0;
 
-	  if (e0->halfedge()->face()->isBoundary() || e0->halfedge()->twin()->face()->isBoundary())
-		  return e0;
-
 	  // collect elements
-	  HalfedgeIter h0 = e0->halfedge();
-	  HalfedgeIter h1 = h0->next();
+	  HalfedgeIter h1 = e0->halfedge();
 	  HalfedgeIter h2 = h1->next();
-	  HalfedgeIter h3 = h0->twin();
+	  HalfedgeIter h0 = h2->next();
+	  HalfedgeIter h3 = h1->twin();
 	  HalfedgeIter h4 = h3->next();
 	  HalfedgeIter h5 = h4->next();
-	  HalfedgeIter h6 = h1->twin();
-	  HalfedgeIter h7 = h2->twin();
-	  HalfedgeIter h8 = h4->twin();
-	  HalfedgeIter h9 = h5->twin();
 	  VertexIter v0 = h0->vertex();
-	  VertexIter v1 = h3->vertex();
-	  VertexIter v2 = h2->vertex();
-	  VertexIter v3 = h5->vertex();
-	  EdgeIter e1 = h1->edge();
-	  EdgeIter e2 = h2->edge();
-	  EdgeIter e3 = h4->edge();
-	  EdgeIter e4 = h5->edge();
-	  FaceIter f0 = h0->face();
+	  VertexIter v1 = h4->vertex();
+	  VertexIter v2 = h5->vertex();
+	  VertexIter v3 = h2->vertex();
+	  FaceIter f0 = h1->face();
 	  FaceIter f1 = h3->face();
 
 	  // reassign elements
-	  h0->setNeighbors(h1, h3, v3, e0, f0);
-	  h1->setNeighbors(h2, h7, v2, e2, f0);
-	  h2->setNeighbors(h0, h8, v0, e3, f0);
-	  h3->setNeighbors(h4, h0, v2, e0, f1);
-	  h4->setNeighbors(h5, h9, v3, e4, f1);
-	  h5->setNeighbors(h3, h6, v1, e1, f1);
-	  h6->setNeighbors(h6->next(), h5, v2, e1, h6->face());
-	  h7->setNeighbors(h7->next(), h1, v0, e2, h7->face());
-	  h8->setNeighbors(h8->next(), h2, v3, e3, h8->face());
-	  h9->setNeighbors(h9->next(), h4, v1, e4, h9->face());
-	  v0->halfedge() = h2;
-	  v1->halfedge() = h5;
-	  v2->halfedge() = h3;
-	  v3->halfedge() = h0;
-	  e0->halfedge() = h0;
-	  e1->halfedge() = h5;
-	  e2->halfedge() = h1;
-	  e3->halfedge() = h2;
-	  e4->halfedge() = h4;
-	  f0->halfedge() = h0;
+	  v0->halfedge() = h0;
+	  v1->halfedge() = h4;
+	  v2->halfedge() = h5;
+	  v3->halfedge() = h2;
+	  e0->halfedge() = h1;	
+	  f0->halfedge() = h1;
 	  f1->halfedge() = h3;
+	  h0->setNeighbors(h4, h0->twin(), v0, h0->edge(), f0);
+	  h1->setNeighbors(h0, h3, v2, e0, f0);
+	  h2->setNeighbors(h3, h2->twin(), v3, h2->edge(), f1);
+	  h3->setNeighbors(h5, h1, v0, e0, f1);
+	  h4->setNeighbors(h1, h4->twin(), v1, h4->edge(), f0);
+	  h5->setNeighbors(h2, h5->twin(), v2, h5->edge(), f1);
 
 	  return e0;
   }
@@ -830,6 +813,12 @@ namespace CMU462 {
 		  it->newPosition = (1.0 - n * u) * it->position + u * newPosition;
 	  }
 
+	  for (EdgeIter it = mesh.edgesBegin(); it != mesh.edgesEnd(); it++)
+	  {
+		  HalfedgeIter eH = it->halfedge();
+		  it->newPosition= (eH->vertex()->position + eH->twin()->vertex()->position) * 3.0 / 8 +
+			  (eH->next()->next()->vertex()->position + eH->twin()->next()->next()->vertex()->position) * 1.0 / 8;
+	  }
 	  // iterate over all edges in the mesh
 	  int n = mesh.nEdges();
 	  EdgeIter e = mesh.edgesBegin();
@@ -839,26 +828,14 @@ namespace CMU462 {
 		  EdgeIter nextEdge = e;
 		  nextEdge++;
 
+		  e->isNew = false;
 		  // Compute new positions associated with the vertices that will be inserted at edge midpoints,
 		  // and store them in Edge::newPosition.
-		  HalfedgeIter eH = e->halfedge();
-		  Vector3D newVertexPosition = (eH->vertex()->position + eH->twin()->vertex()->position) * 3.0 / 8 +
-			  (eH->next()->next()->vertex()->position + eH->twin()->next()->next()->vertex()->position) * 1.0 / 8;
-
-
-		  e->isNew = false;
-
-		 VertexIter insertedVertex = mesh.splitEdge(e);
-		 insertedVertex->isNew = true;
-		 insertedVertex->position = newVertexPosition;
+		  Vector3D newVertexPosition = e->newPosition;
+		  VertexIter insertedVertex = mesh.splitEdge(e);
+		  insertedVertex->isNew = true;
+		  insertedVertex->newPosition = newVertexPosition;
 		  e = nextEdge;
-	  }
-
-	  int newN = mesh.nEdges();
-	  for (int i = n; i < newN; i++)
-	  {
-		  e->isNew = true;
-		  e++;
 	  }
 
 	  // Flip any new edge that connects an old and new vertex.
@@ -866,7 +843,8 @@ namespace CMU462 {
 	  {
 		  if (eIt->isNew)
 		  {
-			  if (eIt->halfedge()->vertex()->isNew && eIt->halfedge()->twin()->vertex()->isNew)
+			  if (( !eIt->halfedge()->vertex()->isNew && eIt->halfedge()->twin()->vertex()->isNew) ||
+				  ( eIt->halfedge()->vertex()->isNew && !eIt->halfedge()->twin()->vertex()->isNew))
 			  {
 				  mesh.flipEdge(eIt);
 			  }
@@ -875,10 +853,7 @@ namespace CMU462 {
 
 	  for (VertexIter it = mesh.verticesBegin(); it != mesh.verticesEnd(); it++)
 	  {
-		  if (it->isNew == false)
-		  {
-			  it->position = it->newPosition;
-		  }
+			it->position = it->newPosition;
 	  }
   }
 
