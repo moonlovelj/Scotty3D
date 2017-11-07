@@ -528,30 +528,28 @@ namespace CMU462 {
     //    Vector3D pi = orig[i]; // get the original vertex position correponding to vertex i
     // }
     //
-
 	  int N = hs.size();
-	  for (int i = 0; i < hs.size(); i++)
-	  {
-		  //Vector3D pi = orig[i]; // get the original vertex position correponding to vertex i
-		  int a = (i + N - 1) % N;
-		  int b = i;
-		  int c = (i + 1) % N;
-		  // Get the actual 3D vertex coordinates at these vertices
-		  Vector3D pa = orig[a];
-		  Vector3D pb = orig[b];
-		  Vector3D pc = orig[c];
-		  Vector3D v1 = pa - pb;
-		  Vector3D v2 = pc - pb;
-		  Vector3D v = v1 + v2;
-		  v.normalize();
-		  hs[i]->vertex()->position = pb + v * inset;
-	  }
-	  
 	  if (N == 0)
 		  return;
+	  Vector3D vCenter;
+	  for (int i = 0; i < N; i++)
+	  {
+		  vCenter += orig[i];
+	  }
+	  vCenter /= N;
+	 
+	  for (int i = 0; i < hs.size(); i++)
+	  {
+		  Vector3D vOrig = orig[i];
+		  Vector3D vOrigNext = orig[(i + 1) % N];
+		  Vector3D v0 = vOrigNext - vOrig;
+		  Vector3D v1 = vCenter - vOrig;
+		  double angle = acos(dot(v0, v1) / (v0.norm()*v1.norm()));
+		  v1.normalize();
+		  hs[i]->vertex()->position = vOrig + v1 * (inset / sin(angle));
+	  }
 
 	  Vector3D fNormal = hs[0]->twin()->next()->twin()->face()->normal();
-	  Vector3D fNormal1 = hs[1]->twin()->next()->twin()->face()->normal();
 	  for (int i = 0; i < hs.size(); i++)
 	  {
 		  hs[i]->vertex()->position = hs[i]->vertex()->position +shift * fNormal;
