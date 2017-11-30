@@ -24,7 +24,7 @@ using std::max;
 
 namespace CMU462 {
 
-  //#define ENABLE_RAY_LOGGING 1
+  #define ENABLE_RAY_LOGGING 1
 
   PathTracer::PathTracer(size_t ns_aa,
       size_t max_ray_depth, size_t ns_area_light,
@@ -502,6 +502,8 @@ namespace CMU462 {
     int num_samples = ns_aa;
 
     Vector2D p = Vector2D(0.5,0.5);
+	p.x += x;
+	p.y += y;
     return trace_ray(camera->generate_ray(p.x, p.y));
 
   }
