@@ -14,8 +14,33 @@ namespace CMU462 {
     // If the ray intersected the bouding box within the range given by
     // t0, t1, update t0 and t1 with the new intersection times.
 
-    return false;
+	  double interval_min = r.min_t;
+	  double interval_max = r.max_t;
+	  Vector3D pp[2];
+	  pp[0] = min;
+	  pp[1] = max;
 
+	  double tt0 = (pp[r.sign[0]].x - r.o.x) * r.inv_d.x;
+	  double tt1 = (pp[r.sign[0]^1].x - r.o.x) * r.inv_d.x;
+	  if (tt0 > interval_min) interval_min = tt0;
+	  if (tt1 < interval_max) interval_max = tt1;
+	  if (interval_min > interval_max) return false;
+
+	  tt0 = (pp[r.sign[2]].y - r.o.y) * r.inv_d.y;
+	  tt1 = (pp[r.sign[2]^1].y - r.o.y) * r.inv_d.y;
+	  if (tt0 > interval_min) interval_min = tt0;
+	  if (tt1 < interval_max) interval_max = tt1;
+	  if (interval_min > interval_max) return false;
+
+	  tt0 = (pp[r.sign[4]].z - r.o.z) * r.inv_d.z;
+	  tt1 = (pp[r.sign[4]^1].z - r.o.z) * r.inv_d.z;
+	  if (tt0 > interval_min) interval_min = tt0;
+	  if (tt1 < interval_max) interval_max = tt1;
+	  if (interval_min > interval_max) return false;
+	  
+	  t0 = interval_min;
+	  t1 = interval_max;
+	  return true;
   }
 
   void BBox::draw(Color c) const {
