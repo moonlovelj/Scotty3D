@@ -428,7 +428,7 @@ namespace CMU462 {
     // indirect lighting components calculated in the code below. The starter
     // code overwrites L_out by (.5,.5,.5) so that you can test your geometry
     // queries before you implement path tracing.
-    L_out = Spectrum(5.f, 5.f, 5.f);
+    //L_out = Spectrum(5.f, 5.f, 5.f);
 
     Vector3D hit_p = r.o + r.d * isect.t;
     Vector3D hit_n = isect.n;
@@ -448,8 +448,8 @@ namespace CMU462 {
     // Extend the below code to compute the direct lighting for all the lights
     // in the scene, instead of just the dummy light we provided in part 1.
 
-    InfiniteHemisphereLight light(Spectrum(5.f, 5.f, 5.f));
-    //DirectionalLight light(Spectrum(5.f, 5.f, 5.f), Vector3D(1.0, -1.0, 0.0));
+    //InfiniteHemisphereLight light(Spectrum(5.f, 5.f, 5.f));
+    DirectionalLight light(Spectrum(5.f, 5.f, 5.f), Vector3D(1.0, -1.0, 0.0));
 
     Vector3D dir_to_light;
     float dist_to_light;
@@ -483,6 +483,14 @@ namespace CMU462 {
       // TODO:
       // Construct a shadow ray and compute whether the intersected surface is
       // in shadow and accumulate reflected radiance
+	  Vector3D shadow_ray_dir_offset = 0.1 * dir_to_light;
+	  Vector3D shadow_ray_o = hit_p + shadow_ray_dir_offset;
+	  Ray shadow_ray(shadow_ray_o, dir_to_light, dist_to_light - shadow_ray_dir_offset.norm());
+	  if (!bvh->intersect(shadow_ray))
+	  {
+		  L_out += (f * cos_theta * scale);
+	  }
+	 
     }
 
     // TODO:
