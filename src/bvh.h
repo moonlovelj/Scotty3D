@@ -8,6 +8,10 @@
 
 namespace CMU462 { namespace StaticScene {
 
+	/**
+	 * split primitives by the value of pivot_val.
+     */
+	size_t qsplit(std::vector<Primitive *> &_primitives, size_t start, size_t range, double pivot_val, size_t axis);
 
   /**
    * A node in the BVH accelerator aggregate.
@@ -78,6 +82,8 @@ namespace CMU462 { namespace StaticScene {
        */
       bool intersect(const Ray& r) const;
 
+	  bool intersect(const BVHNode* pNode, const Ray& ray) const;
+
       /**
        * Ray - Aggregate intersection 2.
        * Check if the given ray intersects with the aggregate (any primitive in
@@ -92,6 +98,8 @@ namespace CMU462 { namespace StaticScene {
        false otherwise
        */
       bool intersect(const Ray& r, Intersection* i) const;
+
+	  bool intersect(BVHNode* pNode, const Ray& ray, Intersection* i) const;
 
       /**
        * Get BSDF of the surface material
@@ -110,6 +118,16 @@ namespace CMU462 { namespace StaticScene {
        * Draw the BVH with OpenGL - used in visualizer
        */
       void draw(const Color& c) const { }
+
+	  /**
+	   * Build branch recursively.
+	   */
+	  BVHNode* buildBranch(std::vector<Primitive *> &_primitives, size_t start, size_t range, size_t axis, size_t max_leaf_size);
+
+	  /**
+	   *Delete branch recursively.
+	   */
+	  void deleteBranch(BVHNode* pNode);
 
       /**
        * Draw the BVH outline with OpenGL - used in visualizer

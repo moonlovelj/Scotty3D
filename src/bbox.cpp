@@ -26,14 +26,14 @@ namespace CMU462 {
 	  if (tt1 < interval_max) interval_max = tt1;
 	  if (interval_min > interval_max) return false;
 
-	  tt0 = (pp[r.sign[2]].y - r.o.y) * r.inv_d.y;
-	  tt1 = (pp[r.sign[2]^1].y - r.o.y) * r.inv_d.y;
+	  tt0 = (pp[r.sign[1]].y - r.o.y) * r.inv_d.y;
+	  tt1 = (pp[r.sign[1]^1].y - r.o.y) * r.inv_d.y;
 	  if (tt0 > interval_min) interval_min = tt0;
 	  if (tt1 < interval_max) interval_max = tt1;
 	  if (interval_min > interval_max) return false;
 
-	  tt0 = (pp[r.sign[4]].z - r.o.z) * r.inv_d.z;
-	  tt1 = (pp[r.sign[4]^1].z - r.o.z) * r.inv_d.z;
+	  tt0 = (pp[r.sign[2]].z - r.o.z) * r.inv_d.z;
+	  tt1 = (pp[r.sign[2]^1].z - r.o.z) * r.inv_d.z;
 	  if (tt0 > interval_min) interval_min = tt0;
 	  if (tt1 < interval_max) interval_max = tt1;
 	  if (interval_min > interval_max) return false;

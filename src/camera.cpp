@@ -116,11 +116,11 @@ namespace CMU462 {
     // canonical sensor plane one unit away from the pinhole.
 	  double offsetX = x - screenW * 0.5;
 	  double offsetY = y - screenH * 0.5;
-	  Vector3D vDir = screenDist * Vector3D(0, 0, 1) + offsetX * Vector3D(1, 0, 0) + offsetY * Vector3D(0, 1, 0);
-	  Matrix3x3 mat = c2w.inv();
-	  mat = mat.T();	
-	  vDir = mat * vDir;
-	  return Ray(pos, vDir);
+	  Vector3D vTarget = screenDist * Vector3D(0, 0, -1) + offsetX * Vector3D(1, 0, 0) + offsetY * Vector3D(0, 1, 0);
+	  vTarget = c2w * vTarget;
+	  Vector3D dir = vTarget - pos;
+	  dir.normalize();
+	  return Ray(pos, dir);
   }
 
 
