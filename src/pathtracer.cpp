@@ -24,7 +24,7 @@ using std::max;
 
 namespace CMU462 {
 
-  #define ENABLE_RAY_LOGGING 1
+  //#define ENABLE_RAY_LOGGING 1
 
   PathTracer::PathTracer(size_t ns_aa,
       size_t max_ray_depth, size_t ns_area_light,
@@ -448,7 +448,7 @@ namespace CMU462 {
     // Extend the below code to compute the direct lighting for all the lights
     // in the scene, instead of just the dummy light we provided in part 1.
 
-    //InfiniteHemisphereLight light(Spectrum(5.f, 5.f, 5.f));
+   // InfiniteHemisphereLight light(Spectrum(5.f, 5.f, 5.f));
     DirectionalLight light(Spectrum(5.f, 5.f, 5.f), Vector3D(1.0, -1.0, 0.0));
 
     Vector3D dir_to_light;
@@ -483,12 +483,12 @@ namespace CMU462 {
       // TODO:
       // Construct a shadow ray and compute whether the intersected surface is
       // in shadow and accumulate reflected radiance
-	  Vector3D shadow_ray_dir_offset = 0.1 * dir_to_light;
+	  Vector3D shadow_ray_dir_offset = EPS_D * dir_to_light;
 	  Vector3D shadow_ray_o = hit_p + shadow_ray_dir_offset;
 	  Ray shadow_ray(shadow_ray_o, dir_to_light, dist_to_light - shadow_ray_dir_offset.norm());
 	  if (!bvh->intersect(shadow_ray))
 	  {
-		  L_out += (f * cos_theta * scale);
+		  L_out += (f * light_L * (cos_theta * scale / pdf));
 	  }
 	 
     }
@@ -508,11 +508,21 @@ namespace CMU462 {
     // The sample rate is given by the number of camera rays per pixel.
 
     int num_samples = ns_aa;
+	Spectrum s_out;
+	double scale = 1.0 / (num_samples * num_samples);
+	double offset = 1.0 / (num_samples + 1);
+	for (int i = 0; i < num_samples; i++)
+	{
+		for (int j = 0; j < num_samples; j++)
+		{
+			s_out += trace_ray(camera->generate_ray(x + offset*(i + 1), y + offset*(j + 1)));
+		}
+	}
 
-    Vector2D p = Vector2D(0.5,0.5);
-	p.x += x;
-	p.y += y;
-    return trace_ray(camera->generate_ray(p.x, p.y));
+//     Vector2D p = Vector2D(0.5,0.5);
+// 	p.x += x;
+// 	p.y += y;
+    return s_out * scale;
 
   }
 
