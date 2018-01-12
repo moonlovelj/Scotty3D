@@ -448,56 +448,74 @@ namespace CMU462 {
     // Extend the below code to compute the direct lighting for all the lights
     // in the scene, instead of just the dummy light we provided in part 1.
 
-   // InfiniteHemisphereLight light(Spectrum(5.f, 5.f, 5.f));
-    DirectionalLight light(Spectrum(5.f, 5.f, 5.f), Vector3D(1.0, -1.0, 0.0));
+    //InfiniteHemisphereLight light(Spectrum(5.f, 5.f, 5.f));
+    //DirectionalLight light(Spectrum(5.f, 5.f, 5.f), Vector3D(1.0, -1.0, 0.0));
 
-    Vector3D dir_to_light;
-    float dist_to_light;
-    float pdf;
+	for (SceneLight* light : scene->lights)
+	{
+		Vector3D dir_to_light;
+		float dist_to_light;
+		float pdf;
 
-    // no need to take multiple samples from a directional source
-    int num_light_samples = light.is_delta_light() ? 1 : ns_area_light;
+		// no need to take multiple samples from a directional source
+		int num_light_samples = light->is_delta_light() ? 1 : ns_area_light;
 
-    // integrate light over the hemisphere about the normal
-    double scale = 1.0 / num_light_samples;
-    for (int i=0; i<num_light_samples; i++) {
+		// integrate light over the hemisphere about the normal
+		double scale = 1.0 / num_light_samples;
+		for (int i = 0; i < num_light_samples; i++) {
 
-      // returns a vector 'dir_to_light' that is a direction from
-      // point hit_p to the point on the light source.  It also returns
-      // the distance from point x to this point on the light source.
-      // (pdf is the probability of randomly selecting the random
-      // sample point on the light source -- more on this in part 2)
-      Spectrum light_L = light.sample_L(hit_p, &dir_to_light, &dist_to_light, &pdf);
+			// returns a vector 'dir_to_light' that is a direction from
+			// point hit_p to the point on the light source.  It also returns
+			// the distance from point x to this point on the light source.
+			// (pdf is the probability of randomly selecting the random
+			// sample point on the light source -- more on this in part 2)
+			Spectrum light_L = light->sample_L(hit_p, &dir_to_light, &dist_to_light, &pdf);
 
-      // convert direction into coordinate space of the surface, where
-      // the surface normal is [0 0 1]
-      Vector3D w_in = w2o * dir_to_light;
+			// convert direction into coordinate space of the surface, where
+			// the surface normal is [0 0 1]
+			Vector3D w_in = w2o * dir_to_light;
 
-      // note that computing dot(n,w_in) is simple
-      // in surface coordinates since the normal is [0 0 1]
-      double cos_theta = std::max(0.0, w_in[2]);
+			// note that computing dot(n,w_in) is simple
+			// in surface coordinates since the normal is [0 0 1]
+			double cos_theta = std::max(0.0, w_in[2]);
 
-      // evaluate surface bsdf
-      Spectrum f = isect.bsdf->f(w_out, w_in);
+			// evaluate surface bsdf
+			Spectrum f = isect.bsdf->f(w_out, w_in);
 
-      // TODO:
-      // Construct a shadow ray and compute whether the intersected surface is
-      // in shadow and accumulate reflected radiance
-	  Vector3D shadow_ray_dir_offset = EPS_D * dir_to_light;
-	  Vector3D shadow_ray_o = hit_p + shadow_ray_dir_offset;
-	  Ray shadow_ray(shadow_ray_o, dir_to_light, dist_to_light - shadow_ray_dir_offset.norm());
-	  if (!bvh->intersect(shadow_ray))
-	  {
-		  L_out += (f * light_L * (cos_theta * scale / pdf));
-	  }
-	 
-    }
+			// TODO:
+			// Construct a shadow ray and compute whether the intersected surface is
+			// in shadow and accumulate reflected radiance
+			Ray shadow_ray(hit_p + EPS_D * dir_to_light, dir_to_light, dist_to_light, 0);
+			if (!bvh->intersect(shadow_ray))
+			{
+				L_out += (f * light_L * (cos_theta * scale / pdf));
+			}
 
+		}
+	}
     // TODO:
     // Compute an indirect lighting estimate using pathtracing with Monte Carlo.
     // Note that Ray objects have a depth field now; you should use this to avoid
     // traveling down one path forever.
 
+	if (r.depth > max_ray_depth)
+		return L_out;
+
+	float pdf;
+	Vector3D w_in;
+	Spectrum f = isect.bsdf->sample_f(w_out, &w_in, &pdf);
+	float terminateProbability = 1.0f - f.illum();
+	terminateProbability = std::max(0.0f, terminateProbability);
+	float randomFloat = (float)(std::rand()) / RAND_MAX;
+	if (randomFloat < terminateProbability)
+		return L_out;
+
+	if (pdf > 0.0)
+	{
+		Vector3D next_ray_dir = (o2w * w_in - hit_p).unit();
+		Ray next_ray(hit_p + EPS_D * next_ray_dir, next_ray_dir, int(r.depth + 1));
+		L_out += (f * (std::max(0.0, w_in[2]) / (pdf *(1.0f - terminateProbability)) * trace_ray(next_ray)));
+	}
     return L_out;
   }
 

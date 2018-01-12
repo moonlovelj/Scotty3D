@@ -36,7 +36,8 @@ namespace CMU462 {
   }
 
   Spectrum DiffuseBSDF::sample_f(const Vector3D& wo, Vector3D* wi, float* pdf) {
-    return Spectrum();
+	  *wi = sampler.get_sample(pdf);
+	  return f(wo, *wi);
   }
 
   // Mirror BSDF //
