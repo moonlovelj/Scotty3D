@@ -485,7 +485,7 @@ namespace CMU462 {
 			// TODO:
 			// Construct a shadow ray and compute whether the intersected surface is
 			// in shadow and accumulate reflected radiance
-			Ray shadow_ray(hit_p + EPS_D * dir_to_light, dir_to_light, dist_to_light, 0);
+			Ray shadow_ray(hit_p + EPS_D * dir_to_light, dir_to_light, dist_to_light - (EPS_D * dir_to_light).norm(), 0);
 			if (!bvh->intersect(shadow_ray))
 			{
 				L_out += (f * light_L * (cos_theta * scale / pdf));
@@ -504,18 +504,13 @@ namespace CMU462 {
 	float pdf;
 	Vector3D w_in;
 	Spectrum f = isect.bsdf->sample_f(w_out, &w_in, &pdf);
-	float terminateProbability = 1.0f - f.illum();
-	terminateProbability = std::max(0.0f, terminateProbability);
+	float terminateProbability = 1.f - clamp(f.illum(), 0.f, 1.f);
 	float randomFloat = (float)(std::rand()) / RAND_MAX;
 	if (randomFloat < terminateProbability)
 		return L_out;
-
-	if (pdf > 0.0)
-	{
-		Vector3D next_ray_dir = (o2w * w_in - hit_p).unit();
-		Ray next_ray(hit_p + EPS_D * next_ray_dir, next_ray_dir, int(r.depth + 1));
-		L_out += (f * (std::max(0.0, w_in[2]) / (pdf *(1.0f - terminateProbability)) * trace_ray(next_ray)));
-	}
+	Vector3D next_ray_dir = (o2w * w_in).unit();
+	Ray next_ray(hit_p + EPS_D * next_ray_dir, next_ray_dir, int(r.depth + 1));
+	L_out += (f * (abs_cos_theta(w_in) / (pdf *(1.0f - terminateProbability)) * trace_ray(next_ray)));
     return L_out;
   }
 

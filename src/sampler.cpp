@@ -9,8 +9,10 @@ namespace CMU462 {
     // TODO:
     // Implement uniform 2D grid sampler
 
-    return Vector2D(0.5,0.5);
+	  double random_x = (double)(std::rand()) / RAND_MAX;
+	  double random_y = (double)(std::rand()) / RAND_MAX;
 
+      return Vector2D(random_x, random_y);
   }
 
   // Uniform Hemisphere Sampler3D Implementation //
@@ -48,7 +50,7 @@ namespace CMU462 {
 	  double ys = sinf(theta) * sinf(phi);
 	  double zs = cosf(theta);
 
-	  double cos_theta = std::max(0.0, zs);
+	  double cos_theta = fabs(zs);
 	  *pdf = cos_theta * M_1_PI;
 
 	  return Vector3D(xs, ys, zs);
