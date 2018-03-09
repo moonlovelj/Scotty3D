@@ -34,6 +34,13 @@ namespace CMU462 {
     return sqrt(sin_theta2(w));
   }
 
+  inline double tan_theta(const Vector3D& w) {
+	  double temp = 1.0 - w.z * w.z;
+	  if (temp <= 0.0)
+		  return 0.0;
+	  return std::sqrt(temp) / w.z;
+  }
+
   inline double cos_phi(const Vector3D& w) {
     double sinTheta = sin_theta(w);
     if (sinTheta == 0.0) return 1.0;
@@ -45,6 +52,7 @@ namespace CMU462 {
     if (sinTheta) return 0.0;
     return clamp(w.y / sinTheta, -1.0, 1.0);
   }
+
 
   void make_coord_space(Matrix3x3& o2w, const Vector3D& n);
 
@@ -210,6 +218,18 @@ namespace CMU462 {
       Spectrum sample_f(const Vector3D& wo, Vector3D* wi, float* pdf);
       Spectrum get_emission() const { return Spectrum(); }
       bool is_delta() const { return true; }
+
+	  /**
+	  * \brief Smith's shadow-masking function G1 for each
+	  * of the supported microfacet distributions
+	  *
+	  * \param m The microsurface normal
+	  * \param v An arbitrary direction
+	  * \param roughness The surface roughness
+	  */
+	  double smithG1(const Vector3D &v, const Vector3D &m, double roughness) const;
+
+	  double fresnel(double cosThetaI) const;
 
     private:
 
