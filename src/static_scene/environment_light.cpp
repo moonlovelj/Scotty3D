@@ -15,11 +15,12 @@ Spectrum EnvironmentLight::sample_L(const Vector3D& p, Vector3D* wi,
 
 	double Xi1 = (double)(std::rand()) / RAND_MAX * 2.0 - 1.0;
 	double Xi2 = (double)(std::rand()) / RAND_MAX;
-	double theta = acos(Xi1);
+  double cosTheta = Xi1;
+  double sinTheta = sqrt(1 - cosTheta*cosTheta);
 	double phi = 2.0 * PI * Xi2;
-	double xs = sinf(theta) * cosf(phi);
-	double ys = sinf(theta) * sinf(phi);
-	double zs = cosf(theta);
+	double xs = sinTheta * cosf(phi);
+	double ys = sinTheta * sinf(phi);
+	double zs = cosTheta;
 
 	*wi = Vector3D(xs, ys, zs);
   *distToLight = INF_D;
@@ -35,8 +36,8 @@ Spectrum EnvironmentLight::sample_dir(const Ray& r) const {
 	if (r.d[1] < 0.0)
 		phi = 2 * M_PI - phi;
 
-	double u = theta / M_PI;
-	double v = phi / (2.0 * M_PI);
+	double u = phi / (2.0 * M_PI);
+	double v = theta / M_PI;
 	double tu = u * envMap->w - 0.5;
 	double tv = v * envMap->h - 0.5;
 
