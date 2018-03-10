@@ -204,8 +204,8 @@ namespace CMU462 {
 
 	void BSDF::reflect(const Vector3D& wo, Vector3D* wi) {
 
-		// TODO:
-		// Implement reflection of wo about normal (0,0,1) and store result in wi.
+    // TODO:
+	  // Implement reflection of wo about normal (0,0,1) and store result in wi.
 		*wi = Vector3D(0, 0, 2 * wo[2]) - wo;
 	}
 
@@ -216,7 +216,7 @@ namespace CMU462 {
 		// Return false if refraction does not occur due to total internal reflection
 		// and true otherwise. When dot(wo,n) is positive, then wo corresponds to a
 		// ray entering the surface through vacuum.
-
+    
 		double cos_theta_o = cos_theta(wo);
 		double sin_theta_o = sin_theta(wo);
 		double etaI = ior, etaT = 1;
