@@ -43,12 +43,9 @@ namespace CMU462 {
 	// Mirror BSDF //
 
 	Spectrum MirrorBSDF::f(const Vector3D& wo, const Vector3D& wi) {
-
-		return Spectrum();
-
-// 		Vector3D N(0, 0, 1);
-// 		Vector3D H = (wo + wi).unit();
-// 		return reflectance * pow(std::max(dot(N, H), 0.0), roughness);
+		Vector3D N(0, 0, 1);
+		Vector3D H = (wo + wi).unit();
+		return reflectance * pow(std::max(dot(N, H), 0.0), roughness);
 	}
 
 	Spectrum MirrorBSDF::sample_f(const Vector3D& wo, Vector3D* wi, float* pdf) {
@@ -135,41 +132,39 @@ namespace CMU462 {
 	// Glass BSDF //
 
 	Spectrum GlassBSDF::f(const Vector3D& wo, const Vector3D& wi) {
-		
-		return Spectrum();
-// 		bool reflect = (wi.z * wo.z) > 0.0;
-// 		if (reflect)
-// 		{
-// 			// reflect
-// 			Vector3D N(0, 0, 1);
-// 			Vector3D H = ((wo + wi)* abs_cos_theta(wo)).unit();
-// 			if (cos_theta(H) <= 0.0)
-// 				return Spectrum();
-// 			double D = (roughness + 2) / (2 * PI)* std::pow(cos_theta(H), roughness);
-// 			double F = fresnel(dot(wi, H));
-// 			double G = smithG1(wi, H, roughness) * smithG1(wo, H, roughness);
-// 			return D * F * G / (4 * wo.z * wi.z) * reflectance;
-// 		}
-// 		else
-// 		{
-// 			// refract
-// 			double etaI = ior, etaT = 1.0;
-// 			if (wi.z > 0.0)
-// 				std::swap(etaI, etaT);
-// 			Vector3D H = (ior > 1.0 ? 1.0 : -1.0)* (wi*etaI + wo*etaT).unit();
-// 			if (cos_theta(H) <= 0.0)
-// 				return Spectrum();
-// 			double D = (roughness + 2) / (2 * PI)* std::pow(std::max(0.0,cos_theta(H)), roughness);
-// 			double F = fresnel(dot(wi, H));
-// 			double G = smithG1(wi, H, roughness) * smithG1(wo, H, roughness);
-// 
-// 			double sqrtDenom = etaI * dot(wi, H) + etaT * dot(wo, H);
-// 			double value = ((1 - F) * D * G * etaT * etaT * dot(wi, H)*dot(wo, H)) /
-// 				(cos_theta(wi) * cos_theta(wo) * sqrtDenom * sqrtDenom);
-// 
-// 
-// 			return value * transmittance ;
-// 		}
+		bool reflect = (wi.z * wo.z) > 0.0;
+		if (reflect)
+		{
+			// reflect
+			Vector3D N(0, 0, 1);
+			Vector3D H = ((wo + wi)* abs_cos_theta(wo)).unit();
+			if (cos_theta(H) <= 0.0)
+				return Spectrum();
+			double D = (roughness + 2) / (2 * PI)* std::pow(cos_theta(H), roughness);
+			double F = fresnel(dot(wi, H));
+			double G = smithG1(wi, H, roughness) * smithG1(wo, H, roughness);
+			return D * F * G / (4 * wo.z * wi.z) * reflectance;
+		}
+		else
+		{
+			// refract
+			double etaI = ior, etaT = 1.0;
+			if (wi.z > 0.0)
+				std::swap(etaI, etaT);
+			Vector3D H = (ior > 1.0 ? 1.0 : -1.0)* (wi*etaI + wo*etaT).unit();
+			if (cos_theta(H) <= 0.0)
+				return Spectrum();
+			double D = (roughness + 2) / (2 * PI)* std::pow(std::max(0.0,cos_theta(H)), roughness);
+			double F = fresnel(dot(wi, H));
+			double G = smithG1(wi, H, roughness) * smithG1(wo, H, roughness);
+
+			double sqrtDenom = etaI * dot(wi, H) + etaT * dot(wo, H);
+			double value = ((1 - F) * D * G * etaT * etaT * dot(wi, H)*dot(wo, H)) /
+				(cos_theta(wi) * cos_theta(wo) * sqrtDenom * sqrtDenom);
+
+
+			return value * transmittance ;
+		}
 	}
 
 	Spectrum GlassBSDF::sample_f(const Vector3D& wo, Vector3D* wi, float* pdf) {
@@ -188,13 +183,13 @@ namespace CMU462 {
 			{
 				// reflect
 				reflect(wo, wi);
-				*pdf = 1.0 ;
+				*pdf = R ;
 				return R * reflectance * (1.0 / std::max(std::fabs((*wi)[2]), 1e-8));
  			}
  			else
  			{
  				// refract
- 				*pdf = 1.0;
+ 				*pdf = (1.0 - R);
  				return (1.0 - R) * transmittance * ((etaI / etaT) * (etaI / etaT) / std::max(std::fabs((*wi)[2]), 1e-8));
  			}
 		}
@@ -203,7 +198,7 @@ namespace CMU462 {
 			// reflect
 			reflect(wo, wi);
 			*pdf = 1.0;
-			return transmittance * (1.0 / std::max(std::fabs((*wi)[2]), 1e-8));
+			return reflectance * (1.0 / std::max(std::fabs((*wi)[2]), 1e-8));
 		}
 	}
 
