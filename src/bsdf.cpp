@@ -217,7 +217,7 @@ namespace CMU462 {
 		// and true otherwise. When dot(wo,n) is positive, then wo corresponds to a
 		// ray entering the surface through vacuum.
 
-		double cos_theta_o = wo[2];
+		double cos_theta_o = cos_theta(wo);
 		double sin_theta_o = sin_theta(wo);
 		double etaI = ior, etaT = 1;
 		if (cos_theta_o < 0.0)
