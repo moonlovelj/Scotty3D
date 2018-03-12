@@ -5,24 +5,97 @@ namespace CMU462 { namespace StaticScene {
 EnvironmentLight::EnvironmentLight(const HDRImageBuffer* envMap)
     : envMap(envMap) {
   // TODO: initialize things here as needed
+  double w = envMap->w;
+  double h = envMap->h;
+  vTheta.resize(h, 0);
+  vThetaPhi.resize(h, std::vector<double>(w));
+  vPhiGivenTheta.resize(h, std::vector<double>(w));
+
+  double C = 0;
+  for (int y = 0; y < h; y++) {
+    double theta = (y + 0.5) / h * M_PI;
+    double sinTheta = std::sin(theta);
+
+    for (int x = 0; x < w; x++) {
+      vThetaPhi[y][x] = envMap->data[x + y * w].illum() * sinTheta;
+      C += vThetaPhi[y][x];
+    }
+  }
+
+  for (int y = 0; y < h; y++) {
+    for (int x = 0; x < w; x++) {
+      vThetaPhi[y][x] /= C;
+      vTheta[y] += vThetaPhi[y][x];
+    }
+
+    if (vTheta[y] != 0) {
+      for (int x = 0; x < w; x++) {
+        vPhiGivenTheta[y][x] = vThetaPhi[y][x] / vTheta[y];
+      }
+    }
+  }
+
+  for (int y = 0; y < h; y++) {
+    if (y > 0) {
+      vTheta[y] += vTheta[y - 1];
+    }
+
+    for (int x = 0; x < w; x++) {
+      if (x > 0) {
+        vPhiGivenTheta[y][x] += vPhiGivenTheta[y][x - 1];
+      }
+    }
+  }
+}
+
+void EnvironmentLight::importance_sample(Vector3D *wi, float *pdf) const {
+  double r1 = (double)(std::rand()) / RAND_MAX;
+  double r2 = (double)(std::rand()) / RAND_MAX;
+  double theta, phi;
+  double x, y;
+  int t, q;
+
+  // Calculate theta.
+  r1 *= vTheta.back();
+  std::vector<double>::const_iterator itr = std::lower_bound(vTheta.begin(), vTheta.end(), r1);
+  t = itr - vTheta.begin();
+  double prev = t > 0 ? *(itr - 1) : 0;
+  y = t + (r1 - prev) / (*itr - prev);
+  theta = std::min(y / envMap->h, 1.0) * PI;
+
+  // Calculate phi.
+  r2 *= vPhiGivenTheta[t].back();
+  itr = std::lower_bound(vPhiGivenTheta[t].begin(), vPhiGivenTheta[t].end(), r2);
+  q = itr - vPhiGivenTheta[t].begin();
+  prev = q > 0 ? *(itr - 1) : 0;
+  x = q + (r2 - prev) / (*itr - prev);
+  phi = std::min(x / envMap->w, 1.0) * 2 * PI;
+
+  double sinTheta = std::sin(theta);
+  double cosTheta = std::cos(theta);
+
+  *pdf = vThetaPhi[t][q];
+  *pdf /= (sinTheta * (2 * PI / envMap->w) *(PI / envMap->h));
+  *wi = Vector3D(sinTheta * std::cos(phi), sinTheta * std::sin(phi), cosTheta);
 }
 
 Spectrum EnvironmentLight::sample_L(const Vector3D& p, Vector3D* wi,
                                     float* distToLight,
                                     float* pdf) const {
   // TODO: Implement
-	*pdf = 1.0 / (4 * M_PI);
-
-	double Xi1 = (double)(std::rand()) / RAND_MAX * 2.0 - 1.0;
-	double Xi2 = (double)(std::rand()) / RAND_MAX;
-  double cosTheta = Xi1;
-  double sinTheta = sqrt(1 - cosTheta*cosTheta);
-	double phi = 2.0 * PI * Xi2;
-	double xs = sinTheta * cosf(phi);
-	double ys = sinTheta * sinf(phi);
-	double zs = cosTheta;
-
-	*wi = Vector3D(xs, ys, zs);
+  // 	*pdf = 1.0 / (4 * M_PI);
+  // 
+  // 	double Xi1 = (double)(std::rand()) / RAND_MAX * 2.0 - 1.0;
+  // 	double Xi2 = (double)(std::rand()) / RAND_MAX;
+  //  double cosTheta = Xi1;
+  //  double sinTheta = sqrt(1 - cosTheta*cosTheta);
+  // 	double phi = 2.0 * PI * Xi2;
+  // 	double xs = sinTheta * cosf(phi);
+  // 	double ys = sinTheta * sinf(phi);
+  // 	double zs = cosTheta;
+  // 
+  // 	*wi = Vector3D(xs, ys, zs);
+  importance_sample(wi, pdf);
   *distToLight = INF_D;
 	Ray r(p, *wi);
 	return sample_dir(r);

@@ -41,9 +41,18 @@ class EnvironmentLight : public SceneLight {
    *   environment map horizontally? What about vertically?).
    */
   Spectrum sample_dir(const Ray& r) const;
+  /**
+   * Importance sample.
+   * Given the value of wi and pdf.
+  */
+  void importance_sample(Vector3D *wi, float *pdf) const;
 
  private:
   const HDRImageBuffer* envMap;
+
+  std::vector<double> vTheta;
+  std::vector<std::vector<double>> vThetaPhi;
+  std::vector<std::vector<double>> vPhiGivenTheta;
 }; // class EnvironmentLight
 
 } // namespace StaticScene
