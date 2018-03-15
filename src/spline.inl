@@ -12,7 +12,25 @@ inline T Spline<T>::cubicSplineUnitInterval(
       int derivative )
 {
    // TODO IMPLEMENT ME (TASK 1A)
-   return T();
+  if (derivative == 2) {
+    return (12 * normalizedTime - 6) * position0 +
+           (6 * normalizedTime - 4) * tangent0 +
+           (-12 * normalizedTime + 6) * position1 +
+           (6 * normalizedTime - 2) * tangent1;
+  }
+  else if (derivative == 1) {
+    double t1 = normalizedTime;
+    double t2 = normalizedTime * normalizedTime;
+    return (6 * t2 - 6 * t1) * position0 + (3 * t2 - 4 * t1 + 1) * tangent0 +
+           (-6 * t2 + 6 * t1) * position1 + (3 * t2 - 2 * t1) * tangent1;
+  }
+  else {
+    double t1 = normalizedTime;
+    double t2 = normalizedTime * normalizedTime;
+    double t3 = normalizedTime * normalizedTime * normalizedTime;
+    return (2 * t3 - 3 * t2 + 1) * position0 + (t3 - 2 * t2 + t1) * tangent0 +
+           (-2 * t3 + 3 * t2) * position1 + (t3 - t2) * tangent1;
+  }
 }
             
 // Returns a state interpolated between the values directly before and after the given time.
