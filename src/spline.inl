@@ -38,8 +38,46 @@ template <class T>
 inline T Spline<T>::evaluate( double time, int derivative )
 {
    // TODO IMPLEMENT ME (TASK 1B)
-   if (knots.size() < 1) return T();
-   else return knots.begin()->second;
+  if (knots.size() < 1) {
+    return T();
+  } else if (knots.size() == 1) {
+    return (derivative == 0 ? knots.begin()->second : 0);
+  } else {
+    if (time <= knots.begin()->first) {
+      return (derivative == 0 ? knots.begin()->second : T());
+    } else if (time >= knots.rbegin()->first) {
+      return (derivative == 0 ? knots.rbegin()->second : T());
+    } else {
+      std::map<double, T>::iterator t2_iter = knots.upper_bound(time);
+      std::map<double, T>::iterator t1_iter = t2_iter;
+      t1_iter--;
+      double t1 = t1_iter->first;
+      double t2 = t2_iter->first;
+      T position1 = t1_iter->second;
+      T position2 = t2_iter->second;
+      double t0, t3;
+      T position0, position3;
+      if (t1_iter == knots.begin()) {
+        t0 = t1 - (t2 - t1);
+        position0 = evaluate(t0, derivative);
+      } else {
+        t0 = (--t1_iter)->first;
+        position0 = t1_iter->second;
+      }
+      std::map<double, T>::reverse_iterator t2_reverse_iter(t2_iter);
+      if (t2_reverse_iter == knots.rbegin()) {
+        t3 = t2 + (t2 - t1);
+        position3 = evaluate(t3, derivative);
+      } else {
+        t3 = (++t2_iter)->first;
+        position3 = t2_iter->second;
+      }
+      T m1 = (position2 - position0) / (t2 - t0);
+      T m2 = (position3 - position1) / (t3 - t1);
+      double normalized_time = (time - t1) / (t2 - t1);
+      return cubicSplineUnitInterval(position1, position2, m1, m2, normalized_time, derivative);
+    }
+  }
 }
 
 // Removes the knot closest to the given time,
