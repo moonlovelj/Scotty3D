@@ -164,7 +164,10 @@ namespace CMU462 { namespace DynamicScene {
      the axis of those joints. Finally, apply the mesh's transformation at the end.
      */
      Matrix4x4 T = Matrix4x4::identity();
-
+     for (Joint* j = parent; j != nullptr; j = j->parent) {
+       T = j->getTransformation() * T;
+     }
+     T = skeleton->mesh->getTransformation() * T;
      return T;
    }
 
@@ -190,7 +193,7 @@ namespace CMU462 { namespace DynamicScene {
      compute the base position in world coordinate frame.
      */
 
-     return Vector3D();
+     return getTransformation() * position;
    }
 
    Vector3D Joint::getEndPosInWorld()
@@ -200,8 +203,11 @@ namespace CMU462 { namespace DynamicScene {
      transformation and translate along this joint's axis to get the end position in world 
      coordinate frame.
      */
+     std::vector<Vector3D> axes;
+     getAxes(axes);
+     Matrix3x3 T(&(axes[0].x));
 
-     return Vector3D();
+     return T * getBasePosInWorld();
    }
 } // namespace DynamicScene
 } // namespace CMU462
