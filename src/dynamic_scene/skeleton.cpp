@@ -372,6 +372,28 @@ namespace CMU462 { namespace DynamicScene {
    {
      // Implement Me! (Task 2B)
      // Do several iterations of Jacobian Transpose gradient descent for IK
+     double tau = 0.01;
+
+     for (int i = 0; i < 100; i++) {
+
+       for (auto g = joints.begin(); g != joints.end(); g++)
+       {
+         g[0]->ikAngleGradient = Vector3D(0., 0., 0.);
+       }
+
+       for (auto t = targets.begin(); t != targets.end(); t++)
+       {
+         t->first->calculateAngleGradient(t->first, t->second);
+       }
+
+       for (auto j = joints.begin(); j != joints.end(); j++)
+       {
+         Vector3D value = j[0]->getAngle(time) - tau*j[0]->ikAngleGradient;
+         j[0]->setAngle(time, value);
+         j[0]->rotation = value;
+       }
+
+     }
    }
 
    void Skeleton::save(const char * filename)

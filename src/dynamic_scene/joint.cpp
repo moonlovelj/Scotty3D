@@ -79,6 +79,22 @@ namespace CMU462 { namespace DynamicScene {
    void Joint :: calculateAngleGradient( Joint* goalJoint, Vector3D q )
    {
      // Implement Me! (task 2B)
+
+     Vector3D goal_pos = goalJoint->getEndPosInWorld();
+     Vector3D delta = goal_pos - q;
+
+     for (Joint* j = this; j->parent != nullptr; j = j->parent) {
+       vector<Vector3D> axes;
+       j->getAxes(axes);
+
+       Vector3D p = goal_pos - j->getBasePosInWorld();
+
+       Vector3D x = cross(axes[0], p);
+       Vector3D y = cross(axes[1], p);
+       Vector3D z = cross(axes[2], p);
+
+       j->ikAngleGradient += Vector3D(dot(x, delta), dot(y, delta), dot(z, delta));
+     }
    }
 
 
@@ -165,7 +181,7 @@ namespace CMU462 { namespace DynamicScene {
      */
      Matrix4x4 T = Matrix4x4::identity();
      for (Joint* j = parent; j != nullptr; j = j->parent) {
-       T = j->getTransformation() * T;
+       T = j->SceneObject::getTransformation() * Matrix4x4::translation(j->axis) * T;
      }
      T = skeleton->mesh->getTransformation() * T;
      return T;
@@ -193,7 +209,8 @@ namespace CMU462 { namespace DynamicScene {
      compute the base position in world coordinate frame.
      */
 
-     return getTransformation() * position;
+     Matrix4x4 T = getTransformation();
+     return T * Vector3D();
    }
 
    Vector3D Joint::getEndPosInWorld()
@@ -203,11 +220,9 @@ namespace CMU462 { namespace DynamicScene {
      transformation and translate along this joint's axis to get the end position in world 
      coordinate frame.
      */
-     std::vector<Vector3D> axes;
-     getAxes(axes);
-     Matrix3x3 T(&(axes[0].x));
-
-     return T * getBasePosInWorld();
+     
+     Matrix4x4 T = getTransformation();
+     return T * SceneObject::getTransformation() * Matrix4x4::translation(axis) * Vector3D();
    }
 } // namespace DynamicScene
 } // namespace CMU462
