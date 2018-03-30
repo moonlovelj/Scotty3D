@@ -376,21 +376,21 @@ namespace CMU462 { namespace DynamicScene {
 
      for (int i = 0; i < 100; i++) {
 
-       for (auto g = joints.begin(); g != joints.end(); g++)
+       for (auto g : joints)
        {
-         g[0]->ikAngleGradient = Vector3D(0., 0., 0.);
+         g->ikAngleGradient = Vector3D(0., 0., 0.);
        }
 
-       for (auto t = targets.begin(); t != targets.end(); t++)
+       for (auto t : targets)
        {
-         t->first->calculateAngleGradient(t->first, t->second);
+         t.first->calculateAngleGradient(t.first, t.second);
        }
 
-       for (auto j = joints.begin(); j != joints.end(); j++)
+       for (auto j : joints)
        {
-         Vector3D value = j[0]->getAngle(time) - tau*j[0]->ikAngleGradient;
-         j[0]->setAngle(time, value);
-         j[0]->rotation = value;
+         Vector3D value = j->getAngle(time) - tau*j->ikAngleGradient;
+         j->setAngle(time, value);
+         j->rotation = value;
        }
 
      }
