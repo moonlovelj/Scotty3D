@@ -45,6 +45,43 @@ Mesh::Mesh( Collada::PolymeshInfo& polyMesh, const Matrix4x4& transform)
 void Mesh::linearBlendSkinning(bool useCapsuleRadius)
 {
   // Implement Me! (Task 3a, Task 3b)
+  for (VertexIter itv = mesh.verticesBegin(); itv != mesh.verticesEnd(); itv++) {
+    std::vector<LBSInfo> lbsinfos;
+    double distnum = 0.0;
+    for (CMU462::DynamicScene::Joint *joint : skeleton->joints) {
+      Vector3D vpos = joint->getBindTransformation().inv() * itv->bindPosition;
+      Vector3D blendpos = joint->getTransformation() * joint->getRotation() * vpos;
+      double dist;
+      Vector3D vo = Vector3D(0., 0., 0.);
+      Vector3D v1 = joint->axis;
+      Vector3D v2 = vpos - vo;
+      if (dot(v1, v2) <= 0.0) {
+        dist = v2.norm();
+      } else if (v1.norm()*v1.norm() <= dot(v1,v2)) {
+        dist = (v1 - v2).norm();
+      } else {
+        double coss = dot(v1, v2) / (v1.norm()*v2.norm());
+        double sins = sqrt(1 - coss*coss);
+        dist = v2.norm() * sins;
+      }
+      if (!useCapsuleRadius || (useCapsuleRadius && dist <= joint->capsuleRadius)) {
+        distnum += 1.0 / dist;
+        LBSInfo info;
+        info.blendPos = blendpos;
+        info.distance = dist;
+        lbsinfos.emplace_back(info);
+      }
+    }
+
+    if (lbsinfos.size() == 0) {
+      itv->position = itv->bindPosition;
+    } else {
+      itv->position = Vector3D(0., 0., 0.);
+      for (LBSInfo itinfo : lbsinfos) {
+        itv->position += (1.0 / itinfo.distance / distnum *itinfo.blendPos);
+      }
+    }
+  }
 }
 
 
