@@ -60,9 +60,7 @@ void Mesh::linearBlendSkinning(bool useCapsuleRadius)
       } else if (v1.norm()*v1.norm() <= dot(v1,v2)) {
         dist = (v1 - v2).norm();
       } else {
-        double coss = dot(v1, v2) / (v1.norm()*v2.norm());
-        double sins = sqrt(1 - coss*coss);
-        dist = v2.norm() * sins;
+        dist = cross(v1, v2).norm() / v1.norm();
       }
       if (!useCapsuleRadius || (useCapsuleRadius && dist <= joint->capsuleRadius)) {
         distnum += 1.0 / dist;
